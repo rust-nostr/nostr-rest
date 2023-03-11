@@ -2,7 +2,7 @@
 // Distributed under the MIT software license
 
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::str::FromStr;
 
 use clap::Parser;
@@ -44,8 +44,10 @@ impl Config {
             None => default_config_file(),
         };
 
+        let content =
+            std::fs::read_to_string(config_file_path).expect("Impossible to read config file");
         let config_file: ConfigFile =
-            Self::read_config_file(&config_file_path).expect("Impossible to read config file");
+            toml::from_str(&content).expect("Impossible to parse config file");
 
         let log_level: Level = match config_file.log_level {
             Some(log_level) => Level::from_str(log_level.as_str()).unwrap_or(Level::Info),
@@ -68,10 +70,5 @@ impl Config {
         println!("{config:?}");
 
         config
-    }
-
-    fn read_config_file(path: &Path) -> std::io::Result<ConfigFile> {
-        let content = std::fs::read_to_string(path)?;
-        Ok(toml::from_str(&content)?)
     }
 }
