@@ -48,7 +48,8 @@ async fn main() -> Result<()> {
         });
 
         let cors = Cors::default()
-            .allowed_methods(vec!["GET", "POST", "PUT", "DELETE"])
+            .allowed_methods(vec!["GET", "POST"])
+            .allow_any_origin()
             .max_age(3600);
 
         let data = web::Data::new(AppState {

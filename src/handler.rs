@@ -12,10 +12,8 @@ pub async fn ping() -> HttpResponse {
     HttpResponse::Ok().json(json!({
         "success": true,
         "code": 200,
-        "message": "NDK Rest API",
-        "data": {
-            "version": env!("CARGO_PKG_VERSION")
-        },
+        "message": "pong",
+        "data": {},
     }))
 }
 
@@ -50,7 +48,7 @@ pub async fn publish_event(data: web::Data<AppState>, body: web::Json<Event>) ->
     }
 }
 
-#[get("/events")]
+#[post("/events")]
 pub async fn get_events(data: web::Data<AppState>, body: web::Json<Vec<Filter>>) -> HttpResponse {
     let filters: Vec<Filter> = body.0;
 
