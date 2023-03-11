@@ -2,7 +2,7 @@
 // Distributed under the MIT software license
 
 use actix_web::{get, post, web, HttpResponse};
-use nostr_sdk::Event;
+use nostr_sdk::{Event, Filter};
 use serde_json::json;
 
 use crate::AppState;
@@ -40,6 +40,27 @@ pub async fn publish_event(data: web::Data<AppState>, body: web::Json<Event>) ->
             "data": {
                 "event_id": event_id
             },
+        })),
+        Err(e) => HttpResponse::BadRequest().json(json!({
+            "success": false,
+            "code": 400,
+            "message": e.to_string(),
+            "data": {},
+        })),
+    }
+}
+
+#[get("/events")]
+pub async fn get_events(data: web::Data<AppState>, body: web::Json<Vec<Filter>>) -> HttpResponse {
+    let filters: Vec<Filter> = body.0;
+
+    // TODO: add a timeout
+    match data.client.get_events_of(filters, None).await {
+        Ok(events) => HttpResponse::Ok().json(json!({
+            "success": true,
+            "code": 200,
+            "message": "Events obtained successfully",
+            "data": events,
         })),
         Err(e) => HttpResponse::BadRequest().json(json!({
             "success": false,
