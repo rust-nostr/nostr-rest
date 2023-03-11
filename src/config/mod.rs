@@ -6,7 +6,6 @@ use std::path::PathBuf;
 use std::str::FromStr;
 
 use clap::Parser;
-use dirs::home_dir;
 use log::Level;
 
 pub mod model;
@@ -15,9 +14,8 @@ pub use self::model::Config;
 use self::model::{ConfigFile, Network, Nostr};
 
 fn default_dir() -> PathBuf {
-    let home: PathBuf = home_dir().unwrap_or_else(|| {
-        log::error!("Unknown home directory");
-        std::process::exit(1)
+    let home: PathBuf = dirs::home_dir().unwrap_or_else(|| {
+        panic!("Unknown home directory");
     });
     home.join(".ndk-rest")
 }
@@ -54,7 +52,7 @@ impl Config {
             None => Level::Info,
         };
 
-        let config = Self {
+        Self {
             log_level,
             network: Network {
                 listen_addr: config_file.network.listen_addr.unwrap_or_else(|| {
@@ -65,10 +63,6 @@ impl Config {
             nostr: Nostr {
                 relays: config_file.nostr.relays,
             },
-        };
-
-        println!("{config:?}");
-
-        config
+        }
     }
 }

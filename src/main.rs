@@ -2,12 +2,14 @@
 // Distributed under the MIT software license
 
 use actix_cors::Cors;
+use actix_web::middleware::Logger;
 use actix_web::{error, web, App, HttpResponse, HttpServer};
 use nostr_sdk::{Client, Keys, Options, Result};
 use serde_json::json;
 
 mod config;
 mod handler;
+mod logger;
 
 use self::config::Config;
 
@@ -17,9 +19,9 @@ pub struct AppState {
 
 #[actix_web::main]
 async fn main() -> Result<()> {
-    env_logger::init();
-
     let config = Config::get();
+
+    logger::init(&config);
 
     let keys = Keys::generate();
     let opts = Options::new().wait_for_send(true);
@@ -54,6 +56,7 @@ async fn main() -> Result<()> {
         });
 
         App::new()
+            .wrap(Logger::default())
             .wrap(cors)
             .app_data(json_config)
             .app_data(data)
