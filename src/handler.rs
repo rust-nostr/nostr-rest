@@ -31,13 +31,11 @@ pub async fn publish_event(data: web::Data<AppState>, body: web::Json<Event>) ->
     }
 
     match data.client.send_event(event).await {
-        Ok(event_id) => HttpResponse::Ok().json(json!({
+        Ok(_) => HttpResponse::Ok().json(json!({
             "success": true,
             "code": 200,
             "message": "Event published",
-            "data": {
-                "event_id": event_id
-            },
+            "data": {},
         })),
         Err(e) => HttpResponse::BadRequest().json(json!({
             "success": false,
