@@ -1,0 +1,20 @@
+[Unit]
+Description=NDK Rest API
+
+[Service]
+ExecStart=/usr/local/bin/ndk-rest
+User=<yourusername>
+Type=simple
+KillMode=process
+Restart=always
+RestartSec=60
+Environment="RUST_BACKTRACE=1"
+
+# Hardening measures
+PrivateTmp=true
+ProtectSystem=full
+NoNewPrivileges=true
+MemoryDenyWriteExecute=true
+
+[Install]
+WantedBy=multi-user.target
