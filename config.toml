@@ -9,6 +9,13 @@
 # Bind to this network address (default: "127.0.0.1:7773")
 # listen_addr = "127.0.0.1:7773"
 
+[limit]
+# Max filters that can be sent to /events endpoint (default: 10)
+# max_filters = 10
+
+# Max events allowed per filters (default: 100)
+# max_events_per_filter = 100
+
 [nostr]
 relays = ["ws://192.168.7.233:7777"]
 

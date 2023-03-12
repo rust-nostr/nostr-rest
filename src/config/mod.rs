@@ -12,7 +12,7 @@ use nostr_sdk::Url;
 pub mod model;
 
 pub use self::model::Config;
-use self::model::{ConfigFile, Network, Nostr, Redis};
+use self::model::{ConfigFile, Limit, Network, Nostr, Redis};
 
 fn default_dir() -> PathBuf {
     let home: PathBuf = dirs::home_dir().unwrap_or_else(|| {
@@ -60,7 +60,10 @@ impl Config {
                     SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7773)
                 }),
             },
-            //limit: Limit {},
+            limit: Limit {
+                max_filters: config_file.limit.max_filters.unwrap_or(10),
+                max_events_per_filter: config_file.limit.max_events_per_filter.unwrap_or(100),
+            },
             nostr: Nostr {
                 relays: config_file.nostr.relays,
             },

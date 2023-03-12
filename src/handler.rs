@@ -49,6 +49,14 @@ pub async fn publish_event(data: web::Data<AppState>, body: web::Json<Event>) ->
 pub async fn get_events(data: web::Data<AppState>, body: web::Json<Vec<Filter>>) -> HttpResponse {
     let filters: Vec<Filter> = body.0;
 
+    if filters.len() > data.config.limit.max_filters {
+        return HttpResponse::BadRequest().json(json!({
+            "success": false,
+            "message": format!("Too many filters (max allowed {})", data.config.limit.max_filters),
+            "data": {},
+        }));
+    }
+
     if let Some(redis) = &data.redis {
         let mut connection = redis.get_async_connection().await.unwrap();
         let hash: String = Sha256Hash::hash(format!("{filters:?}").as_bytes()).to_string();

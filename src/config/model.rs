@@ -18,11 +18,17 @@ pub struct ConfigFileNetwork {
     pub listen_addr: Option<SocketAddr>,
 }
 
-/* #[derive(Debug)]
-pub struct Limit {}
+#[derive(Debug, Clone)]
+pub struct Limit {
+    pub max_filters: usize,
+    pub max_events_per_filter: usize,
+}
 
 #[derive(Deserialize)]
-pub struct ConfigFileLimit {} */
+pub struct ConfigFileLimit {
+    pub max_filters: Option<usize>,
+    pub max_events_per_filter: Option<usize>,
+}
 
 #[derive(Clone, Deserialize)]
 pub struct Nostr {
@@ -54,7 +60,7 @@ pub struct ConfigFileRedis {
 pub struct Config {
     pub log_level: log::Level,
     pub network: Network,
-    //pub limit: Limit,
+    pub limit: Limit,
     pub nostr: Nostr,
     pub redis: Redis,
 }
@@ -63,7 +69,7 @@ pub struct Config {
 pub struct ConfigFile {
     pub log_level: Option<String>,
     pub network: ConfigFileNetwork,
-    //pub limit: ConfigFileLimit,
+    pub limit: ConfigFileLimit,
     pub nostr: Nostr,
     pub redis: ConfigFileRedis,
 }
