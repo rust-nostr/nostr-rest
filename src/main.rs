@@ -62,10 +62,14 @@ async fn main() -> Result<()> {
             .into()
         });
 
-        let cors = Cors::default()
-            .allowed_methods(vec!["GET", "POST"])
-            .allow_any_origin()
-            .max_age(3600);
+        let cors = if config.network.permissive_cors {
+            Cors::permissive()
+        } else {
+            Cors::default()
+                .allowed_methods(vec!["GET", "POST"])
+                .allow_any_origin()
+                .max_age(3600)
+        };
 
         App::new()
             .wrap(Logger::default())

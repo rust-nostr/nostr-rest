@@ -9,6 +9,10 @@
 # Bind to this network address (default: "127.0.0.1:7773")
 # listen_addr = "127.0.0.1:7773"
 
+# Enable permissive CORS (default: false)
+# Permissive mode should NOT be used in production!
+# permissive_cors = false
+
 [limit]
 # Max filters that can be sent to /events endpoint (default: 10)
 # max_filters = 10

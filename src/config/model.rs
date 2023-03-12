@@ -11,11 +11,13 @@ use nostr_sdk::Url;
 #[derive(Debug, Clone)]
 pub struct Network {
     pub listen_addr: SocketAddr,
+    pub permissive_cors: bool,
 }
 
 #[derive(Deserialize)]
 pub struct ConfigFileNetwork {
     pub listen_addr: Option<SocketAddr>,
+    pub permissive_cors: Option<bool>,
 }
 
 #[derive(Debug, Clone)]

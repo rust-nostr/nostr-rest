@@ -59,6 +59,7 @@ impl Config {
                 listen_addr: config_file.network.listen_addr.unwrap_or_else(|| {
                     SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 7773)
                 }),
+                permissive_cors: config_file.network.permissive_cors.unwrap_or(false),
             },
             limit: Limit {
                 max_filters: config_file.limit.max_filters.unwrap_or(10),
