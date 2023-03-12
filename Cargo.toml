@@ -13,11 +13,13 @@ keywords = ["nostr", "ndk", "rest"]
 [dependencies]
 actix-cors = "0.6"
 actix-web = "4.3"
+bincode = "1.3"
 clap = { version = "4.1", features = ["derive"] }
 dirs = "4.0"
 env_logger = "0.10"
 log = "0.4"
 nostr-sdk = { version = "0.19", default-features = false }
+redis = { version = "0.22", features = ["tokio-comp"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 toml = "0.7"

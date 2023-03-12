@@ -11,3 +11,13 @@
 
 [nostr]
 relays = ["ws://192.168.7.233:7777"]
+
+[redis]
+# Enable redis (default: false)
+enabled = false
+
+# Redis endpoint (default: "redis://127.0.0.1")
+# endpoint = "redis://127.0.0.1"
+
+# Expiration in secs (default: 60)
+expiration = 60

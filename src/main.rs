@@ -5,6 +5,7 @@ use actix_cors::Cors;
 use actix_web::middleware::Logger;
 use actix_web::{error, web, App, HttpResponse, HttpServer};
 use nostr_sdk::{Client, Keys, Options, Result};
+use redis::Client as RedisClient;
 use serde_json::json;
 
 mod config;
@@ -14,7 +15,9 @@ mod logger;
 use self::config::Config;
 
 pub struct AppState {
+    config: Config,
     client: Client,
+    redis: Option<RedisClient>,
 }
 
 #[actix_web::main]
@@ -27,11 +30,23 @@ async fn main() -> Result<()> {
     let opts = Options::new().wait_for_send(true);
     let client = Client::new_with_opts(&keys, opts);
 
-    for url in config.nostr.relays.into_iter() {
-        client.add_relay(url, None).await?;
+    for url in config.nostr.relays.iter() {
+        client.add_relay(url.to_string(), None).await?;
     }
 
     client.connect().await;
+
+    let redis: Option<RedisClient> = if config.redis.enabled {
+        Some(RedisClient::open("redis://127.0.0.1/")?)
+    } else {
+        None
+    };
+
+    let data = web::Data::new(AppState {
+        config: config.clone(),
+        client,
+        redis,
+    });
 
     let http_server = HttpServer::new(move || {
         let json_config = web::JsonConfig::default().error_handler(|err, _req| {
@@ -52,15 +67,11 @@ async fn main() -> Result<()> {
             .allow_any_origin()
             .max_age(3600);
 
-        let data = web::Data::new(AppState {
-            client: client.clone(),
-        });
-
         App::new()
             .wrap(Logger::default())
             .wrap(cors)
             .app_data(json_config)
-            .app_data(data)
+            .app_data(data.clone())
             .configure(init_routes)
     });
 

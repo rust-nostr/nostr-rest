@@ -8,7 +8,7 @@ use serde::Deserialize;
 
 use nostr_sdk::Url;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Network {
     pub listen_addr: SocketAddr,
 }
@@ -24,7 +24,7 @@ pub struct Limit {}
 #[derive(Deserialize)]
 pub struct ConfigFileLimit {} */
 
-#[derive(Deserialize)]
+#[derive(Clone, Deserialize)]
 pub struct Nostr {
     pub relays: Vec<Url>,
 }
@@ -36,12 +36,27 @@ impl fmt::Debug for Nostr {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
+pub struct Redis {
+    pub enabled: bool,
+    pub endpoint: Url,
+    pub expiration: usize,
+}
+
+#[derive(Deserialize)]
+pub struct ConfigFileRedis {
+    pub enabled: Option<bool>,
+    pub endpoint: Option<Url>,
+    pub expiration: Option<usize>,
+}
+
+#[derive(Debug, Clone)]
 pub struct Config {
     pub log_level: log::Level,
     pub network: Network,
     //pub limit: Limit,
     pub nostr: Nostr,
+    pub redis: Redis,
 }
 
 #[derive(Deserialize)]
@@ -50,4 +65,5 @@ pub struct ConfigFile {
     pub network: ConfigFileNetwork,
     //pub limit: ConfigFileLimit,
     pub nostr: Nostr,
+    pub redis: ConfigFileRedis,
 }

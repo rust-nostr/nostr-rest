@@ -7,11 +7,12 @@ use std::str::FromStr;
 
 use clap::Parser;
 use log::Level;
+use nostr_sdk::Url;
 
 pub mod model;
 
 pub use self::model::Config;
-use self::model::{ConfigFile, Network, Nostr};
+use self::model::{ConfigFile, Network, Nostr, Redis};
 
 fn default_dir() -> PathBuf {
     let home: PathBuf = dirs::home_dir().unwrap_or_else(|| {
@@ -62,6 +63,13 @@ impl Config {
             //limit: Limit {},
             nostr: Nostr {
                 relays: config_file.nostr.relays,
+            },
+            redis: Redis {
+                enabled: config_file.redis.enabled.unwrap_or(false),
+                endpoint: config_file.redis.endpoint.unwrap_or_else(|| {
+                    Url::parse("redis://127.0.0.1").expect("Invalid default redis endpoint")
+                }),
+                expiration: config_file.redis.expiration.unwrap_or(60),
             },
         }
     }
