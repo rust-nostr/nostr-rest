@@ -5,9 +5,9 @@ use actix_web::{get, post, web, HttpResponse};
 use nostr::prelude::FromBech32;
 use nostr_sdk::hashes::sha256::Hash as Sha256Hash;
 use nostr_sdk::hashes::Hash;
-use nostr_sdk::prelude::XOnlyPublicKey;
-use nostr_sdk::{Event, Filter, Kind, Client, Url, Keys};
 use nostr_sdk::prelude::FromPkStr;
+use nostr_sdk::prelude::XOnlyPublicKey;
+use nostr_sdk::{Client, Event, Filter, Keys, Kind, Url};
 use redis::AsyncCommands;
 use serde_json::json;
 
@@ -49,12 +49,15 @@ pub async fn publish_event(data: web::Data<AppState>, body: web::Json<Event>) ->
 }
 
 #[get("/v1/{relay}/{pubkey}/contacts")]
-pub async fn get_contacts(_data: web::Data<AppState>, path: web::Path<(String, String)>) -> HttpResponse {
+pub async fn get_contacts(
+    _data: web::Data<AppState>,
+    path: web::Path<(String, String)>,
+) -> HttpResponse {
     let (relay, pubkey) = path.into_inner();
 
     let keys = Keys::from_pk_str(pubkey.as_str()).unwrap();
     // let opts = Options::new().wait_for_send(true);
-    let endpoint = Url::parse(&relay).unwrap();
+    // let endpoint = Url::parse(&relay).unwrap();
     let client = Client::new(&keys);
 
     client.add_relay(relay, None).await.unwrap();
@@ -77,9 +80,11 @@ pub async fn get_contacts(_data: web::Data<AppState>, path: web::Path<(String, S
     }
 }
 
-
 #[get("/profile/{relay}/{pubkey}")]
-pub async fn get_profile(_data: web::Data<AppState>, path: web::Path<(String, String)>) -> HttpResponse {
+pub async fn get_profile(
+    _data: web::Data<AppState>,
+    path: web::Path<(String, String)>,
+) -> HttpResponse {
     let (relay, pubkey) = path.into_inner();
 
     let keys = Keys::generate();
