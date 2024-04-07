@@ -4,7 +4,7 @@
 use actix_cors::Cors;
 use actix_web::middleware::Logger;
 use actix_web::{error, web, App, HttpResponse, HttpServer};
-use nostr_sdk::{Client, Keys, Options, Result};
+use nostr_sdk::{Client, Keys, Result};
 use redis::Client as RedisClient;
 use serde_json::json;
 
@@ -27,12 +27,9 @@ async fn main() -> Result<()> {
     logger::init(&config);
 
     let keys = Keys::generate();
-    let opts = Options::new().wait_for_send(true);
-    let client = Client::new_with_opts(&keys, opts);
+    let client = Client::new(&keys);
 
-    for url in config.nostr.relays.iter() {
-        client.add_relay(url.to_string(), None).await?;
-    }
+    client.add_relays(config.nostr.relays.iter()).await?;
 
     client.connect().await;
 

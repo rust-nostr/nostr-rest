@@ -1,4 +1,4 @@
-# NDK Rest API
+# Nostr Rest API
 
 ## Description
 
