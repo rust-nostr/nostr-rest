@@ -1,10 +1,10 @@
 // Copyright (c) 2023 Nostr Development Kit Devs
 // Distributed under the MIT software license
 
+use std::fs;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::path::PathBuf;
 use std::str::FromStr;
-use std::fs;
 
 use clap::Parser;
 use nostr_sdk::Url;
@@ -14,7 +14,6 @@ pub mod model;
 
 pub use self::model::Config;
 use self::model::{ConfigFile, Limit, Network, Nostr, Redis};
-
 
 fn default_dir() -> PathBuf {
     let home: PathBuf = dirs::home_dir().unwrap_or_else(|| {
@@ -52,7 +51,7 @@ impl Config {
     pub fn get() -> Self {
         let args: Args = Args::parse();
 
-        let config_file_path: PathBuf = args.config.unwrap_or_else(|| default_config_file());
+        let config_file_path: PathBuf = args.config.unwrap_or_else(default_config_file);
         let content = fs::read_to_string(config_file_path).expect("Impossible to read config file");
         let config_file: ConfigFile =
             toml::from_str(&content).expect("Impossible to parse config file");

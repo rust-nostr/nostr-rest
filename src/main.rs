@@ -1,14 +1,13 @@
 // Copyright (c) 2023 Nostr Development Kit Devs
 // Distributed under the MIT software license
 
-use axum::{
-    http::Method,
-    routing::{get, post},
-    Router,
-};
+use std::time::Duration;
+
+use axum::http::Method;
+use axum::routing::{get, post};
+use axum::Router;
 use nostr_sdk::{Client, Keys, Result};
 use redis::Client as RedisClient;
-use std::time::Duration;
 use tower_http::cors::{Any, CorsLayer};
 use tower_http::trace::TraceLayer;
 

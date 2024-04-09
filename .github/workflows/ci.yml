@@ -14,28 +14,20 @@ jobs:
     name: Format
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - run: cargo fmt --all -- --config format_code_in_doc_comments=true --check
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Install just
+        run: cargo install just
+      - name: Check
+        run: just check-fmt
 
-  build:
-    name: Build
+  check:
+    name: Check crate
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout
-      uses: actions/checkout@v3
-    - name: Cache
-      uses: actions/cache@v3
-      with:
-        path: |
-          ~/.cargo/registry
-          ~/.cargo/git
-          target
-        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.toml','**/Cargo.lock') }}
-    - name: Set profile
-      run: rustup set profile minimal && rustup component add clippy
-    - name: Build
-      run: cargo build
-    - name: Tests
-      run: cargo test
-    - name: Clippy
-      run: cargo clippy -- -D warnings
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Install just
+        run: cargo install just
+      - name: Check
+        run: just check-crate

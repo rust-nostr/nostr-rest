@@ -1,10 +1,9 @@
 // Copyright (c) 2023 Nostr Development Kit Devs
 // Distributed under the MIT software license
 
-use axum::{
-    extract::{rejection::JsonRejection, FromRequest},
-    response::{IntoResponse, Response},
-};
+use axum::extract::rejection::JsonRejection;
+use axum::extract::FromRequest;
+use axum::response::{IntoResponse, Response};
 use serde_json::json;
 
 #[derive(FromRequest)]

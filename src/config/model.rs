@@ -4,9 +4,8 @@
 use std::fmt;
 use std::net::SocketAddr;
 
-use serde::Deserialize;
-
 use nostr_sdk::Url;
+use serde::Deserialize;
 
 #[derive(Debug, Clone)]
 pub struct Network {

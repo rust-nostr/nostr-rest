@@ -1,8 +1,8 @@
 [Unit]
-Description=NDK Rest API
+Description=Nostr Rest API
 
 [Service]
-ExecStart=/usr/local/bin/ndk-rest
+ExecStart=/usr/local/bin/nostr-rest
 User=<yourusername>
 Type=simple
 KillMode=process

@@ -18,6 +18,5 @@ of the PR were done in a specific way -->
 
 #### All Submissions:
 
-* [ ] I've signed all my commits
-* [ ] I followed the [contribution guidelines](../CONTRIBUTING.md)
-* [ ] I ran `make precommit` before committing
+* [ ] I followed the [contribution guidelines](https://github.com/rust-nostr/nostr/blob/master/CONTRIBUTING.md)
+* [ ] I ran `just precommit` or `just check` before committing

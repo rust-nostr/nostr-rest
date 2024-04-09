@@ -1,7 +1,8 @@
 // Copyright (c) 2023 Nostr Development Kit Devs
 // Distributed under the MIT software license
 
-use axum::{extract::State, response::Json};
+use axum::extract::State;
+use axum::response::Json;
 use nostr_sdk::hashes::sha256::Hash as Sha256Hash;
 use nostr_sdk::hashes::Hash;
 use nostr_sdk::{Event, Filter};
