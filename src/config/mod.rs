@@ -6,8 +6,8 @@ use std::path::PathBuf;
 use std::str::FromStr;
 
 use clap::Parser;
-use log::Level;
 use nostr_sdk::Url;
+use tracing::Level;
 
 pub mod model;
 
@@ -49,8 +49,8 @@ impl Config {
             toml::from_str(&content).expect("Impossible to parse config file");
 
         let log_level: Level = match config_file.log_level {
-            Some(log_level) => Level::from_str(log_level.as_str()).unwrap_or(Level::Info),
-            None => Level::Info,
+            Some(log_level) => Level::from_str(log_level.as_str()).unwrap_or(Level::INFO),
+            None => Level::INFO,
         };
 
         Self {

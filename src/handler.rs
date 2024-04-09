@@ -1,63 +1,67 @@
 // Copyright (c) 2023 Nostr Development Kit Devs
 // Distributed under the MIT software license
 
-use actix_web::{get, post, web, HttpResponse};
+use axum::{extract::State, response::Json};
 use nostr_sdk::hashes::sha256::Hash as Sha256Hash;
 use nostr_sdk::hashes::Hash;
 use nostr_sdk::{Event, Filter};
 use redis::AsyncCommands;
-use serde_json::json;
+use serde_json::{json, Value};
 
+use crate::error::{AppError, AppJson};
 use crate::AppState;
 
-#[get("/ping")]
-pub async fn ping() -> HttpResponse {
-    HttpResponse::Ok().json(json!({
+pub async fn ping() -> Json<Value> {
+    Json(json!({
         "success": true,
         "message": "pong",
         "data": {},
     }))
 }
 
-#[post("/event")]
-pub async fn publish_event(data: web::Data<AppState>, body: web::Json<Event>) -> HttpResponse {
+pub async fn publish_event(
+    state: State<AppState>,
+    body: AppJson<Event>,
+) -> Result<AppJson<Value>, AppError> {
     let event: Event = body.0;
 
     if let Err(e) = event.verify() {
-        return HttpResponse::BadRequest().json(json!({
+        return Ok(AppJson(json!({
             "success": false,
             "message": e.to_string(),
             "data": {},
-        }));
+        })));
     }
 
-    match data.client.send_event(event).await {
-        Ok(_) => HttpResponse::Ok().json(json!({
+    match state.client.send_event(event).await {
+        Ok(_) => Ok(AppJson(json!({
             "success": true,
             "message": "Event published",
             "data": {},
-        })),
-        Err(e) => HttpResponse::BadRequest().json(json!({
+        }))),
+        Err(e) => Ok(AppJson(json!({
             "success": false,
             "message": e.to_string(),
             "data": {},
-        })),
+        }))),
     }
 }
 
-#[post("/events")]
-pub async fn get_events(data: web::Data<AppState>, body: web::Json<Vec<Filter>>) -> HttpResponse {
+pub async fn get_events(
+    state: State<AppState>,
+    body: AppJson<Vec<Filter>>,
+) -> Result<AppJson<Value>, AppError> {
     let filters: Vec<Filter> = body.0;
 
-    if filters.len() > data.config.limit.max_filters {
-        return HttpResponse::BadRequest().json(json!({
+    if filters.len() > state.config.limit.max_filters {
+        return Ok(AppJson(json!({
             "success": false,
-            "message": format!("Too many filters (max allowed {})", data.config.limit.max_filters),
+            "message": format!("Too many filters (max allowed {})", state.config.limit.max_filters),
             "data": {},
-        }));
+        })));
     }
 
-    if let Some(redis) = &data.redis {
+    if let Some(redis) = &state.redis {
         let mut connection = redis.get_async_connection().await.unwrap();
         let hash: String = Sha256Hash::hash(format!("{filters:?}").as_bytes()).to_string();
         match connection.exists::<&str, bool>(&hash).await {
@@ -67,59 +71,59 @@ pub async fn get_events(data: web::Data<AppState>, body: web::Json<Vec<Filter>>)
                         Ok(result) => {
                             let bytes: Vec<u8> = result;
                             let events: Vec<Event> = bincode::deserialize(&bytes).unwrap();
-                            HttpResponse::Ok().json(json!({
+                            Ok(AppJson(json!({
                                 "success": true,
                                 "message": format!("Got {} events", events.len()),
                                 "data": events,
-                            }))
+                            })))
                         }
-                        Err(e) => HttpResponse::BadRequest().json(json!({
+                        Err(e) => Ok(AppJson(json!({
                             "success": false,
                             "message": e.to_string(),
                             "data": {},
-                        })),
+                        }))),
                     }
                 } else {
-                    match data.client.get_events_of(filters, None).await {
+                    match state.client.get_events_of(filters, None).await {
                         Ok(events) => {
                             let encoded: Vec<u8> = bincode::serialize(&events).unwrap();
                             let _: () = connection
-                                .set_ex(hash, encoded, data.config.redis.expiration)
+                                .set_ex(hash, encoded, state.config.redis.expiration)
                                 .await
                                 .unwrap();
-                            HttpResponse::Ok().json(json!({
+                            Ok(AppJson(json!({
                                 "success": true,
                                 "message": format!("Got {} events", events.len()),
                                 "data": events,
-                            }))
+                            })))
                         }
-                        Err(e) => HttpResponse::BadRequest().json(json!({
+                        Err(e) => Ok(AppJson(json!({
                             "success": false,
                             "message": e.to_string(),
                             "data": {},
-                        })),
+                        }))),
                     }
                 }
             }
-            Err(e) => HttpResponse::BadRequest().json(json!({
+            Err(e) => Ok(AppJson(json!({
                 "success": false,
                 "message": e.to_string(),
                 "data": {},
-            })),
+            }))),
         }
     } else {
         // TODO: add a timeout
-        match data.client.get_events_of(filters, None).await {
-            Ok(events) => HttpResponse::Ok().json(json!({
+        match state.client.get_events_of(filters, None).await {
+            Ok(events) => Ok(AppJson(json!({
                 "success": true,
                 "message": format!("Got {} events", events.len()),
                 "data": events,
-            })),
-            Err(e) => HttpResponse::BadRequest().json(json!({
+            }))),
+            Err(e) => Ok(AppJson(json!({
                 "success": false,
                 "message": e.to_string(),
                 "data": {},
-            })),
+            }))),
         }
     }
 }

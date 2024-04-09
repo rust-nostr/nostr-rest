@@ -1,26 +1,32 @@
 // Copyright (c) 2023 Nostr Development Kit Devs
 // Distributed under the MIT software license
 
-use actix_cors::Cors;
-use actix_web::middleware::Logger;
-use actix_web::{error, web, App, HttpResponse, HttpServer};
+use axum::{
+    http::Method,
+    routing::{get, post},
+    Router,
+};
 use nostr_sdk::{Client, Keys, Result};
 use redis::Client as RedisClient;
-use serde_json::json;
+use std::time::Duration;
+use tower_http::cors::{Any, CorsLayer};
+use tower_http::trace::TraceLayer;
 
 mod config;
+mod error;
 mod handler;
 mod logger;
 
 use self::config::Config;
 
+#[derive(Clone)]
 pub struct AppState {
     config: Config,
     client: Client,
     redis: Option<RedisClient>,
 }
 
-#[actix_web::main]
+#[tokio::main]
 async fn main() -> Result<()> {
     let config = Config::get();
 
@@ -39,52 +45,30 @@ async fn main() -> Result<()> {
         None
     };
 
-    let data = web::Data::new(AppState {
+    let state = AppState {
         config: config.clone(),
         client,
         redis,
-    });
+    };
 
-    let http_server = HttpServer::new(move || {
-        let json_config = web::JsonConfig::default().error_handler(|err, _req| {
-            error::InternalError::from_response(
-                "",
-                HttpResponse::BadRequest().json(json!({
-                    "success": false,
-                    "code": 400,
-                    "message": err.to_string(),
-                    "data": {}
-                })),
-            )
-            .into()
-        });
-
-        let cors = if config.network.permissive_cors {
-            Cors::permissive()
+    let app = Router::new()
+        .route("/ping", get(handler::ping))
+        .route("/publish_event", post(handler::publish_event))
+        .route("/events", post(handler::get_events))
+        .layer(if config.network.permissive_cors {
+            CorsLayer::permissive()
         } else {
-            Cors::default()
-                .allowed_methods(vec!["GET", "POST"])
-                .allow_any_origin()
-                .max_age(3600)
-        };
+            CorsLayer::new()
+                .allow_methods([Method::GET, Method::POST])
+                .allow_origin(Any)
+                .max_age(Duration::from_secs(3600))
+        })
+        .layer(TraceLayer::new_for_http())
+        .with_state(state);
 
-        App::new()
-            .wrap(Logger::default())
-            .wrap(cors)
-            .app_data(json_config)
-            .app_data(data.clone())
-            .configure(init_routes)
-    });
+    let listener = tokio::net::TcpListener::bind(config.network.listen_addr).await?;
 
-    let server = http_server.bind(config.network.listen_addr)?;
+    tracing::info!("REST API listening on {}", listener.local_addr()?);
 
-    log::info!("REST API listening on {}", config.network.listen_addr);
-
-    Ok(server.run().await?)
-}
-
-fn init_routes(cfg: &mut web::ServiceConfig) {
-    cfg.service(handler::ping);
-    cfg.service(handler::publish_event);
-    cfg.service(handler::get_events);
+    Ok(axum::serve(listener, app).await?)
 }

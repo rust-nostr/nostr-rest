@@ -60,7 +60,7 @@ pub struct ConfigFileRedis {
 
 #[derive(Debug, Clone)]
 pub struct Config {
-    pub log_level: log::Level,
+    pub log_level: tracing::Level,
     pub network: Network,
     pub limit: Limit,
     pub nostr: Nostr,
