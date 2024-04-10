@@ -3,6 +3,7 @@
 
 use axum::extract::rejection::JsonRejection;
 use axum::extract::FromRequest;
+use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
 use serde_json::json;
 
@@ -20,21 +21,35 @@ where
 }
 
 pub enum AppError {
+    // Too many filters were provided in the request
+    FilterError(usize),
     // The request body contained invalid JSON
     JsonRejection(JsonRejection),
+    // An Nostr Client error occurred
+    NostrClientError(nostr_sdk::client::Error),
+    // An Nostr Event error occurred
+    NostrEventError(nostr_sdk::event::Error),
+    // A Redis error occurred
+    RedisError(redis::RedisError),
 }
 
 impl IntoResponse for AppError {
     fn into_response(self) -> Response {
         let (status, message) = match self {
+            AppError::FilterError(max_filters) => (
+                StatusCode::BAD_REQUEST,
+                format!("Too many filters (max allowed {})", max_filters).to_string(),
+            ),
             AppError::JsonRejection(rejection) => (rejection.status(), rejection.body_text()),
+            AppError::NostrClientError(err) => (StatusCode::BAD_REQUEST, err.to_string()),
+            AppError::NostrEventError(err) => (StatusCode::BAD_REQUEST, err.to_string()),
+            AppError::RedisError(err) => (StatusCode::BAD_REQUEST, err.to_string()),
         };
 
         (
             status,
             AppJson(json!({
                 "success": false,
-                "code": status.as_u16(),
                 "message": message,
                 "data": {}
             })),
@@ -46,5 +61,23 @@ impl IntoResponse for AppError {
 impl From<JsonRejection> for AppError {
     fn from(rejection: JsonRejection) -> Self {
         Self::JsonRejection(rejection)
+    }
+}
+
+impl From<nostr_sdk::client::Error> for AppError {
+    fn from(error: nostr_sdk::client::Error) -> Self {
+        Self::NostrClientError(error)
+    }
+}
+
+impl From<nostr_sdk::event::Error> for AppError {
+    fn from(error: nostr_sdk::event::Error) -> Self {
+        Self::NostrEventError(error)
+    }
+}
+
+impl From<redis::RedisError> for AppError {
+    fn from(error: redis::RedisError) -> Self {
+        Self::RedisError(error)
     }
 }

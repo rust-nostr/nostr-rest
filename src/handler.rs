@@ -25,27 +25,13 @@ pub async fn publish_event(
     body: AppJson<Event>,
 ) -> Result<AppJson<Value>, AppError> {
     let event: Event = body.0;
-
-    if let Err(e) = event.verify() {
-        return Ok(AppJson(json!({
-            "success": false,
-            "message": e.to_string(),
-            "data": {},
-        })));
-    }
-
-    match state.client.send_event(event).await {
-        Ok(_) => Ok(AppJson(json!({
-            "success": true,
-            "message": "Event published",
-            "data": {},
-        }))),
-        Err(e) => Ok(AppJson(json!({
-            "success": false,
-            "message": e.to_string(),
-            "data": {},
-        }))),
-    }
+    event.verify()?;
+    state.client.send_event(event).await?;
+    Ok(AppJson(json!({
+        "success": true,
+        "message": "Event published",
+        "data": {},
+    })))
 }
 
 pub async fn get_events(
@@ -55,76 +41,42 @@ pub async fn get_events(
     let filters: Vec<Filter> = body.0;
 
     if filters.len() > state.config.limit.max_filters {
-        return Ok(AppJson(json!({
-            "success": false,
-            "message": format!("Too many filters (max allowed {})", state.config.limit.max_filters),
-            "data": {},
-        })));
+        return Err(AppError::FilterError(state.config.limit.max_filters));
     }
 
     if let Some(redis) = &state.redis {
         let mut connection = redis.get_async_connection().await.unwrap();
         let hash: String = Sha256Hash::hash(format!("{filters:?}").as_bytes()).to_string();
-        match connection.exists::<&str, bool>(&hash).await {
-            Ok(exists) => {
-                if exists {
-                    match connection.get(&hash).await {
-                        Ok(result) => {
-                            let bytes: Vec<u8> = result;
-                            let events: Vec<Event> = bincode::deserialize(&bytes).unwrap();
-                            Ok(AppJson(json!({
-                                "success": true,
-                                "message": format!("Got {} events", events.len()),
-                                "data": events,
-                            })))
-                        }
-                        Err(e) => Ok(AppJson(json!({
-                            "success": false,
-                            "message": e.to_string(),
-                            "data": {},
-                        }))),
-                    }
-                } else {
-                    match state.client.get_events_of(filters, None).await {
-                        Ok(events) => {
-                            let encoded: Vec<u8> = bincode::serialize(&events).unwrap();
-                            let _: () = connection
-                                .set_ex(hash, encoded, state.config.redis.expiration)
-                                .await
-                                .unwrap();
-                            Ok(AppJson(json!({
-                                "success": true,
-                                "message": format!("Got {} events", events.len()),
-                                "data": events,
-                            })))
-                        }
-                        Err(e) => Ok(AppJson(json!({
-                            "success": false,
-                            "message": e.to_string(),
-                            "data": {},
-                        }))),
-                    }
-                }
-            }
-            Err(e) => Ok(AppJson(json!({
-                "success": false,
-                "message": e.to_string(),
-                "data": {},
-            }))),
-        }
-    } else {
-        // TODO: add a timeout
-        match state.client.get_events_of(filters, None).await {
-            Ok(events) => Ok(AppJson(json!({
+        let exists = connection.exists::<&str, bool>(&hash).await?;
+        if exists {
+            let result = connection.get(&hash).await?;
+            let bytes: Vec<u8> = result;
+            let events: Vec<Event> = bincode::deserialize(&bytes).unwrap();
+            Ok(AppJson(json!({
                 "success": true,
                 "message": format!("Got {} events", events.len()),
                 "data": events,
-            }))),
-            Err(e) => Ok(AppJson(json!({
-                "success": false,
-                "message": e.to_string(),
-                "data": {},
-            }))),
+            })))
+        } else {
+            let events = state.client.get_events_of(filters, None).await?;
+            let encoded: Vec<u8> = bincode::serialize(&events).unwrap();
+            let _: () = connection
+                .set_ex(hash, encoded, state.config.redis.expiration)
+                .await
+                .unwrap();
+            Ok(AppJson(json!({
+                "success": true,
+                "message": format!("Got {} events", events.len()),
+                "data": events,
+            })))
         }
+    } else {
+        // TODO: add a timeout
+        let events = state.client.get_events_of(filters, None).await?;
+        Ok(AppJson(json!({
+            "success": true,
+            "message": format!("Got {} events", events.len()),
+            "data": events,
+        })))
     }
 }
