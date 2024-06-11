@@ -47,14 +47,14 @@ impl fmt::Debug for Nostr {
 pub struct Redis {
     pub enabled: bool,
     pub endpoint: Url,
-    pub expiration: usize,
+    pub expiration: u64,
 }
 
 #[derive(Deserialize)]
 pub struct ConfigFileRedis {
     pub enabled: Option<bool>,
     pub endpoint: Option<Url>,
-    pub expiration: Option<usize>,
+    pub expiration: Option<u64>,
 }
 
 #[derive(Debug, Clone)]

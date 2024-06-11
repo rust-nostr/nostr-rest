@@ -45,7 +45,7 @@ pub async fn get_events(
     }
 
     if let Some(redis) = &state.redis {
-        let mut connection = redis.get_async_connection().await.unwrap();
+        let mut connection = redis.get_multiplexed_async_connection().await.unwrap();
         let hash: String = Sha256Hash::hash(format!("{filters:?}").as_bytes()).to_string();
         let exists = connection.exists::<&str, bool>(&hash).await?;
         if exists {

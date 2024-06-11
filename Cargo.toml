@@ -12,15 +12,15 @@ keywords = ["nostr", "api", "rest"]
 
 [dependencies]
 axum = { version = "0.7", features = ["macros"] }
-bincode = "1.3"
-clap = { version = "4.1", features = ["derive"] }
-dirs = "4.0"
-nostr-sdk = { version = "0.26", default-features = false }
-redis = { version = "0.22", features = ["tokio-comp"] }
+bincode = "1.3" # TODO: to remove
+clap = { version = "4.5", features = ["derive"] }
+dirs = "5.0"
+nostr-sdk = { version = "0.32", default-features = false }
+redis = { version = "0.25", features = ["tokio-comp"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-tokio = "1.37"
-toml = "0.7"
+tokio = { version = "1.38", features = ["net"] }
+toml = "0.8"
 tower-http = { version = "0.5", features = ["cors", "trace"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3" }
