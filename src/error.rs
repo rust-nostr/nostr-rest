@@ -23,6 +23,8 @@ where
 pub enum AppError {
     // Too many filters were provided in the request
     FilterError(usize),
+    // Too many filters were provided in the request
+    EventIdNotFound,
     // The request body contained invalid JSON
     JsonRejection(JsonRejection),
     // An Nostr Client error occurred
@@ -38,8 +40,11 @@ impl IntoResponse for AppError {
         let (status, message) = match self {
             AppError::FilterError(max_filters) => (
                 StatusCode::BAD_REQUEST,
-                format!("Too many filters (max allowed {})", max_filters).to_string(),
+                format!("Too many filters (max allowed {max_filters})"),
             ),
+            AppError::EventIdNotFound => {
+                (StatusCode::BAD_REQUEST, String::from("Event ID not found"))
+            }
             AppError::JsonRejection(rejection) => (rejection.status(), rejection.body_text()),
             AppError::NostrClientError(err) => (StatusCode::BAD_REQUEST, err.to_string()),
             AppError::NostrEventError(err) => (StatusCode::BAD_REQUEST, err.to_string()),
