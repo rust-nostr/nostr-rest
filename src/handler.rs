@@ -80,7 +80,7 @@ async fn get_events_by_filters(
     filters: Vec<Filter>,
 ) -> Result<Vec<Event>, AppError> {
     if let Some(redis) = &state.redis {
-        let mut connection = redis.get_multiplexed_async_connection().await.unwrap(); // TODO: remove unwrap
+        let mut connection = redis.get_multiplexed_async_connection().await?;
         let hash: String = Sha256Hash::hash(format!("{filters:?}").as_bytes()).to_string();
         let exists = connection.exists::<&str, bool>(&hash).await?;
         if exists {
@@ -89,17 +89,17 @@ async fn get_events_by_filters(
             let events: Vec<Event> = bincode::deserialize(&bytes).unwrap(); // TODO: remove unwrap
             Ok(events)
         } else {
-            let events = state.client.get_events_of(filters, None).await?;
+            let events = state.client.fetch_events(filters, None).await?;
+            let events = events.to_vec();
             let encoded: Vec<u8> = bincode::serialize(&events).unwrap();
             let _: () = connection
                 .set_ex(hash, encoded, state.config.redis.expiration)
-                .await
-                .unwrap();
+                .await?;
             Ok(events)
         }
     } else {
         // TODO: add a timeout
-        let events = state.client.get_events_of(filters, None).await?;
-        Ok(events)
+        let events = state.client.fetch_events(filters, None).await?;
+        Ok(events.to_vec())
     }
 }

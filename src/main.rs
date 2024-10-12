@@ -34,7 +34,9 @@ async fn main() -> Result<()> {
     let keys = Keys::generate();
     let client = Client::new(&keys);
 
-    client.add_relays(config.nostr.relays.iter()).await?;
+    for relay in config.nostr.relays.iter() {
+        client.add_relay(relay).await?;
+    }
 
     client.connect().await;
 
