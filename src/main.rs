@@ -6,7 +6,7 @@ use std::time::Duration;
 use axum::http::Method;
 use axum::routing::{get, post};
 use axum::Router;
-use nostr_sdk::{Client, Keys, Result};
+use nostr_sdk::{Client, Result};
 use redis::Client as RedisClient;
 use tower_http::cors::{Any, CorsLayer};
 use tower_http::trace::TraceLayer;
@@ -31,8 +31,7 @@ async fn main() -> Result<()> {
 
     logger::init(&config);
 
-    let keys = Keys::generate();
-    let client = Client::new(&keys);
+    let client = Client::default();
 
     for relay in config.nostr.relays.iter() {
         client.add_relay(relay).await?;
@@ -41,7 +40,7 @@ async fn main() -> Result<()> {
     client.connect().await;
 
     let redis: Option<RedisClient> = if config.redis.enabled {
-        Some(RedisClient::open("redis://127.0.0.1/")?)
+        Some(RedisClient::open(config.redis.endpoint.clone())?)
     } else {
         None
     };

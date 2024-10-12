@@ -22,13 +22,13 @@ pub struct ConfigFileNetwork {
 #[derive(Debug, Clone)]
 pub struct Limit {
     pub max_filters: usize,
-    pub max_events_per_filter: usize,
+    //pub max_events_per_filter: usize,
 }
 
 #[derive(Deserialize)]
 pub struct ConfigFileLimit {
     pub max_filters: Option<usize>,
-    pub max_events_per_filter: Option<usize>,
+    //pub max_events_per_filter: Option<usize>,
 }
 
 #[derive(Clone, Deserialize)]

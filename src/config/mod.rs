@@ -71,7 +71,7 @@ impl Config {
             },
             limit: Limit {
                 max_filters: config_file.limit.max_filters.unwrap_or(10),
-                max_events_per_filter: config_file.limit.max_events_per_filter.unwrap_or(100),
+                //max_events_per_filter: config_file.limit.max_events_per_filter.unwrap_or(100),
             },
             nostr: Nostr {
                 relays: config_file.nostr.relays,
