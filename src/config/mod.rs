@@ -76,6 +76,8 @@ impl Config {
             },
             nostr: Nostr {
                 relays: config_file.nostr.relays,
+                discovery: config_file.nostr.discovery,
+                gossip: config_file.nostr.gossip,
             },
             redis: Redis {
                 enabled: config_file.redis.enabled.unwrap_or(false),

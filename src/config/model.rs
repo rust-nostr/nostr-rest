@@ -2,10 +2,9 @@
 // Copyright (c) 2023-2025 Rust Nostr Developers
 // Distributed under the MIT software license
 
-use std::fmt;
 use std::net::SocketAddr;
 
-use nostr_sdk::Url;
+use nostr_sdk::{RelayUrl, Url};
 use serde::Deserialize;
 
 #[derive(Debug, Clone)]
@@ -32,16 +31,11 @@ pub struct ConfigFileLimit {
     //pub max_events_per_filter: Option<usize>,
 }
 
-#[derive(Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct Nostr {
-    pub relays: Vec<Url>,
-}
-
-impl fmt::Debug for Nostr {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let relays: Vec<String> = self.relays.iter().map(|r| r.to_string()).collect();
-        write!(f, "{{ relays: {:?} }}", relays)
-    }
+    pub relays: Vec<RelayUrl>,
+    pub discovery: Vec<RelayUrl>,
+    pub gossip: bool,
 }
 
 #[derive(Debug, Clone)]

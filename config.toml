@@ -3,7 +3,7 @@
 ##
 
 # Console log level: TRACE, DEBUG, INFO, WARN, ERROR (default: INFO)
-# log_level = "INFO" 
+# log_level = "INFO"
 
 [network]
 # Bind to this network address (default: "127.0.0.1:7773")
@@ -21,7 +21,14 @@
 # max_events_per_filter = 100
 
 [nostr]
-relays = ["ws://192.168.7.233:7777"]
+# Read/Write relays
+relays = ["wss://relay.damus.io"]
+
+# Discovery relays (used for gossip)
+discovery = ["wss://relay.damus.io"]
+
+# Use the gossip model (default: false)
+gossip = true
 
 [redis]
 # Enable redis (default: false)

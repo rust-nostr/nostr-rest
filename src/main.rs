@@ -7,7 +7,7 @@ use std::time::Duration;
 use axum::http::Method;
 use axum::routing::{get, post};
 use axum::Router;
-use nostr_sdk::{Client, Result};
+use nostr_sdk::{Client, Options, Result};
 use redis::Client as RedisClient;
 use tower_http::cors::{Any, CorsLayer};
 use tower_http::trace::TraceLayer;
@@ -32,10 +32,15 @@ async fn main() -> Result<()> {
 
     logger::init(&config);
 
-    let client = Client::default();
+    let opts: Options = Options::new().gossip(config.nostr.gossip);
+    let client: Client = Client::builder().opts(opts).build();
 
     for relay in config.nostr.relays.iter() {
         client.add_relay(relay).await?;
+    }
+
+    for relay in config.nostr.discovery.iter() {
+        client.add_discovery_relay(relay).await?;
     }
 
     client.connect().await;
