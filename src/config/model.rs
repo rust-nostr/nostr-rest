@@ -3,6 +3,7 @@
 // Distributed under the MIT software license
 
 use std::net::SocketAddr;
+use std::time::Duration;
 
 use nostr_sdk::{RelayUrl, Url};
 use serde::Deserialize;
@@ -31,11 +32,21 @@ pub struct ConfigFileLimit {
     //pub max_events_per_filter: Option<usize>,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone)]
 pub struct Nostr {
     pub relays: Vec<RelayUrl>,
     pub discovery: Vec<RelayUrl>,
     pub gossip: bool,
+    pub fetch_timeout: Duration,
+}
+
+#[derive(Deserialize)]
+pub struct ConfigFileNostr {
+    pub relays: Vec<RelayUrl>,
+    pub discovery: Vec<RelayUrl>,
+    pub gossip: bool,
+    #[serde(rename = "fetch-timeout")]
+    pub fetch_timeout: Option<u64>,
 }
 
 #[derive(Debug, Clone)]
@@ -66,6 +77,6 @@ pub struct ConfigFile {
     pub log_level: Option<String>,
     pub network: ConfigFileNetwork,
     pub limit: ConfigFileLimit,
-    pub nostr: Nostr,
+    pub nostr: ConfigFileNostr,
     pub redis: ConfigFileRedis,
 }

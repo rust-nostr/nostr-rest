@@ -3,7 +3,6 @@
 // Distributed under the MIT software license
 
 use std::hash::{DefaultHasher, Hash, Hasher};
-use std::time::Duration;
 
 use axum::extract::{Path, State};
 use axum::response::Json;
@@ -14,8 +13,6 @@ use serde_json::{json, Value};
 
 use crate::error::{AppError, AppJson};
 use crate::AppState;
-
-const FETCH_TIMEOUT: Duration = Duration::from_secs(60);
 
 #[derive(Deserialize)]
 pub struct GetEventByIdParams {
@@ -97,7 +94,10 @@ async fn get_events_by_filters(
                 Ok(events)
             }
             Err(..) => {
-                let events = state.client.fetch_events(filters, FETCH_TIMEOUT).await?;
+                let events = state
+                    .client
+                    .fetch_events(filters, state.config.nostr.fetch_timeout)
+                    .await?;
                 let events: Vec<Event> = events.to_vec();
                 let encoded: Vec<u8> = serde_json::to_vec(&events).unwrap();
                 let _: () = connection
@@ -107,8 +107,10 @@ async fn get_events_by_filters(
             }
         }
     } else {
-        // TODO: add a timeout
-        let events = state.client.fetch_events(filters, FETCH_TIMEOUT).await?;
+        let events = state
+            .client
+            .fetch_events(filters, state.config.nostr.fetch_timeout)
+            .await?;
         Ok(events.to_vec())
     }
 }

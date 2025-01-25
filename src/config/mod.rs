@@ -6,6 +6,7 @@ use std::fs;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::path::PathBuf;
 use std::str::FromStr;
+use std::time::Duration;
 
 use clap::Parser;
 use nostr_sdk::Url;
@@ -15,6 +16,8 @@ pub mod model;
 
 pub use self::model::Config;
 use self::model::{ConfigFile, Limit, Network, Nostr, Redis};
+
+const DEFAULT_FETCH_TIMEOUT: u64 = 10;
 
 fn default_dir() -> PathBuf {
     let home: PathBuf = dirs::home_dir().unwrap_or_else(|| {
@@ -78,6 +81,12 @@ impl Config {
                 relays: config_file.nostr.relays,
                 discovery: config_file.nostr.discovery,
                 gossip: config_file.nostr.gossip,
+                fetch_timeout: Duration::from_secs(
+                    config_file
+                        .nostr
+                        .fetch_timeout
+                        .unwrap_or(DEFAULT_FETCH_TIMEOUT),
+                ),
             },
             redis: Redis {
                 enabled: config_file.redis.enabled.unwrap_or(false),

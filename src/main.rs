@@ -30,6 +30,9 @@ pub struct AppState {
 async fn main() -> Result<()> {
     let config = Config::get();
 
+    #[cfg(debug_assertions)]
+    println!("{:?}\n", config);
+
     logger::init(&config);
 
     let opts: Options = Options::new().gossip(config.nostr.gossip);

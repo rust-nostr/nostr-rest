@@ -30,6 +30,9 @@ discovery = ["wss://relay.damus.io"]
 # Use the gossip model (default: false)
 gossip = true
 
+# Event fetching timeout in secs (default: 10)
+fetch-timeout = 15
+
 [redis]
 # Enable redis (default: false)
 enabled = false
