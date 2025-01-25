@@ -2,12 +2,11 @@
 // Copyright (c) 2023-2025 Rust Nostr Developers
 // Distributed under the MIT software license
 
+use std::hash::{DefaultHasher, Hash, Hasher};
 use std::time::Duration;
 
 use axum::extract::{Path, State};
 use axum::response::Json;
-use nostr_sdk::hashes::sha256::Hash as Sha256Hash;
-use nostr_sdk::hashes::Hash;
 use nostr_sdk::{Event, EventId, Filter};
 use redis::AsyncCommands;
 use serde::Deserialize;
@@ -86,25 +85,36 @@ async fn get_events_by_filters(
 ) -> Result<Vec<Event>, AppError> {
     if let Some(redis) = &state.redis {
         let mut connection = redis.get_multiplexed_async_connection().await?;
-        let hash: String = Sha256Hash::hash(format!("{filters:?}").as_bytes()).to_string();
-        let exists = connection.exists::<&str, bool>(&hash).await?;
-        if exists {
-            let result = connection.get(&hash).await?;
-            let bytes: Vec<u8> = result;
-            let events: Vec<Event> = bincode::deserialize(&bytes).unwrap(); // TODO: remove unwrap
-            Ok(events)
-        } else {
-            let events = state.client.fetch_events(filters, FETCH_TIMEOUT).await?;
-            let events = events.to_vec();
-            let encoded: Vec<u8> = bincode::serialize(&events).unwrap();
-            let _: () = connection
-                .set_ex(hash, encoded, state.config.redis.expiration)
-                .await?;
-            Ok(events)
+
+        // Hash filters
+        let hash: u64 = make_hash(&filters);
+
+        // Try to get cached result
+        match connection.get(hash).await {
+            Ok(cached) => {
+                let bytes: Vec<u8> = cached;
+                let events: Vec<Event> = serde_json::from_slice(&bytes).unwrap(); // TODO: remove unwrap
+                Ok(events)
+            }
+            Err(..) => {
+                let events = state.client.fetch_events(filters, FETCH_TIMEOUT).await?;
+                let events: Vec<Event> = events.to_vec();
+                let encoded: Vec<u8> = serde_json::to_vec(&events).unwrap();
+                let _: () = connection
+                    .set_ex(hash, encoded, state.config.redis.expiration)
+                    .await?;
+                Ok(events)
+            }
         }
     } else {
         // TODO: add a timeout
         let events = state.client.fetch_events(filters, FETCH_TIMEOUT).await?;
         Ok(events.to_vec())
     }
+}
+
+fn make_hash<T: Hash>(t: &T) -> u64 {
+    let mut s: DefaultHasher = DefaultHasher::new();
+    t.hash(&mut s);
+    s.finish()
 }

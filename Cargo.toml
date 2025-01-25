@@ -12,7 +12,6 @@ keywords = ["nostr", "api", "rest"]
 
 [dependencies]
 axum = { version = "0.8", features = ["macros"] }
-bincode = "1.3" # TODO: to remove
 clap = { version = "4.5", features = ["derive"] }
 dirs = "6.0"
 nostr-sdk = { git = "https://github.com/rust-nostr/nostr", rev = "1470b8b00437e586fb86035484f942d6202db83a", default-features = false }
