@@ -11,7 +11,7 @@ readme = "README.md"
 keywords = ["nostr", "api", "rest"]
 
 [dependencies]
-axum = { version = "0.7", features = ["macros"] }
+axum = { version = "0.8", features = ["macros"] }
 bincode = "1.3" # TODO: to remove
 clap = { version = "4.5", features = ["derive"] }
 dirs = "5.0"
