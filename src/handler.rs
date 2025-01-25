@@ -1,4 +1,5 @@
-// Copyright (c) 2023 Nostr Development Kit Devs
+// Copyright (c) 2023 Yuki Kishimoto
+// Copyright (c) 2023-2025 Rust Nostr Developers
 // Distributed under the MIT software license
 
 use axum::extract::{Path, State};
