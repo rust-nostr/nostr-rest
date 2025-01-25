@@ -2,6 +2,8 @@
 // Copyright (c) 2023-2025 Rust Nostr Developers
 // Distributed under the MIT software license
 
+use std::time::Duration;
+
 use axum::extract::{Path, State};
 use axum::response::Json;
 use nostr_sdk::hashes::sha256::Hash as Sha256Hash;
@@ -13,6 +15,8 @@ use serde_json::{json, Value};
 
 use crate::error::{AppError, AppJson};
 use crate::AppState;
+
+const FETCH_TIMEOUT: Duration = Duration::from_secs(60);
 
 #[derive(Deserialize)]
 pub struct GetEventByIdParams {
@@ -90,7 +94,7 @@ async fn get_events_by_filters(
             let events: Vec<Event> = bincode::deserialize(&bytes).unwrap(); // TODO: remove unwrap
             Ok(events)
         } else {
-            let events = state.client.fetch_events(filters, None).await?;
+            let events = state.client.fetch_events(filters, FETCH_TIMEOUT).await?;
             let events = events.to_vec();
             let encoded: Vec<u8> = bincode::serialize(&events).unwrap();
             let _: () = connection
@@ -100,7 +104,7 @@ async fn get_events_by_filters(
         }
     } else {
         // TODO: add a timeout
-        let events = state.client.fetch_events(filters, None).await?;
+        let events = state.client.fetch_events(filters, FETCH_TIMEOUT).await?;
         Ok(events.to_vec())
     }
 }
