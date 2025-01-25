@@ -55,7 +55,7 @@ async fn main() -> Result<()> {
     let app = Router::new()
         .route("/ping", get(handler::ping))
         .route("/event", post(handler::publish_event))
-        .route("/event/:event_id", get(handler::get_event_by_id))
+        .route("/event/{event_id}", get(handler::get_event_by_id))
         .route("/events", post(handler::get_events))
         .layer(if config.network.permissive_cors {
             CorsLayer::permissive()
