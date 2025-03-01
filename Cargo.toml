@@ -15,7 +15,7 @@ axum = { version = "0.8", features = ["macros"] }
 clap = { version = "4.5", features = ["derive"] }
 dirs = "6.0"
 nostr-sdk = { git = "https://github.com/rust-nostr/nostr", rev = "1470b8b00437e586fb86035484f942d6202db83a", default-features = false }
-redis = { version = "0.28", features = ["tokio-comp"] }
+redis = { version = "0.29", features = ["tokio-comp"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 tokio = { version = "1.43", features = ["net"] }
